@@ -30,12 +30,17 @@ TfBridge::TfBridge(const string& tracking_frame,
 
 std::unique_ptr<::cartographer::transform::Rigid3d> TfBridge::LookupToTracking(
     const ::cartographer::common::Time time, const string& frame_id) const {
+  string temp_frame;
+  if ( frame_id == "" )
+    temp_frame = "base_footprint";
+  else
+    temp_frame = frame_id;
   ::ros::Duration timeout(lookup_transform_timeout_sec_);
   std::unique_ptr<::cartographer::transform::Rigid3d> frame_id_to_tracking;
   try {
     const ::ros::Time latest_tf_time =
         buffer_
-            ->lookupTransform(tracking_frame_, frame_id, ::ros::Time(0.),
+            ->lookupTransform(tracking_frame_, temp_frame, ::ros::Time(0.),
                               timeout)
             .header.stamp;
     const ::ros::Time requested_time = ToRos(time);
@@ -46,7 +51,7 @@ std::unique_ptr<::cartographer::transform::Rigid3d> TfBridge::LookupToTracking(
     }
     return ::cartographer::common::make_unique<
         ::cartographer::transform::Rigid3d>(ToRigid3d(buffer_->lookupTransform(
-        tracking_frame_, frame_id, requested_time, timeout)));
+        tracking_frame_, temp_frame, requested_time, timeout)));
   } catch (const tf2::TransformException& ex) {
     LOG(WARNING) << ex.what();
   }
