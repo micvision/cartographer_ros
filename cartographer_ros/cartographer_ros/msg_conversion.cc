@@ -34,8 +34,6 @@
 #include "sensor_msgs/MultiEchoLaserScan.h"
 #include "sensor_msgs/PointCloud2.h"
 
-#include <limits>
-
 namespace cartographer_ros {
 
 namespace {
@@ -108,11 +106,7 @@ PointCloudWithIntensities LaserScanToPointCloudWithIntensities(
   for (size_t i = 0; i < msg.ranges.size(); ++i) {
     const auto& echoes = msg.ranges[i];
     if (HasEcho(echoes)) {
-      //const float first_echo = GetFirstEcho(echoes);
-      //to solve the large scale problem, we treat the inf ranges as the longest range that we can accept 
-      float first_echo = GetFirstEcho(echoes);
-      if(first_echo == std::numeric_limits<float>::infinity())
-        first_echo = msg.range_max;
+      const float first_echo = GetFirstEcho(echoes);
       if (msg.range_min <= first_echo && first_echo <= msg.range_max) {
         const Eigen::AngleAxisf rotation(angle, Eigen::Vector3f::UnitZ());
         point_cloud.points.push_back(rotation *
